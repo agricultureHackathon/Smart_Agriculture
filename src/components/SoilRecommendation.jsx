@@ -33,6 +33,7 @@ Optional fields (include if available):
 - idealPH [min, max]
 - bestSeason
 - reasonForRecommendation
+Answer in both languages english and hindi and
 Do not add any extra text or explanations. Only return the JSON array.`;
 
       const response = await genAI.models.generateContent({
@@ -94,7 +95,7 @@ Do not add any extra text or explanations. Only return the JSON array.`;
 - Potassium (K): ${K}
 - pH: ${pH}
 
-Recommend 6 crops that would grow best in these conditions. Return only a valid JSON array with:
+Recommend 6 crops that would grow best in these conditions In both english and hindi. Return only a valid JSON array with:
 - name
 - soilType
 - climate

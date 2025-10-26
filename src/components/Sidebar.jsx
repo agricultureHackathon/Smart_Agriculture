@@ -43,6 +43,13 @@ function Sidebar() {
             <img src="assets/Soy Bean.png" alt="AI Irrigation Forecast" className="w-6 h-6 max-w-full" />
             <span>AI Irrigation Forecast</span>
           </Link>
+          <Link
+            to="/govt-schemes"
+            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 w-full"
+            >              
+            <img src="assets/govt.png" alt="Government Schemes" className="w-6 h-6 max-w-full" />
+            <span>Government Schemes</span>
+            </Link>
           <button
             className="px-4 py-2 rounded bg-[#FF6B6B] hover:bg-[#E55A5A] text-center"
             onClick={() => alert("Pump Control Clicked!")}
@@ -106,6 +113,15 @@ function Sidebar() {
               className="px-4 py-2 rounded bg-[#FF6B6B] hover:bg-[#E55A5A] text-center"
               onClick={() => alert("Pump Control Clicked!")}
             >
+              <Link
+                 to="/govt-schemes"
+                 onClick={() => setMobileMenuOpen(false)}
+                 className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10"
+>
+                <img src="assets/govt.png" alt="Government Schemes" className="w-6 h-6 max-w-full" />
+                <span>Government Schemes</span>
+              </Link>
+
               Control Pump
             </button>
 

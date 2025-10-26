@@ -137,7 +137,7 @@ export default function Dashboard() {
           <img src="assets/search-icon.png" alt="" className="w-[18px] h-[18px]" />
           <input
             type="text"
-            placeholder="Search Place...."
+            placeholder="Search a City...."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={handleKeyDown}

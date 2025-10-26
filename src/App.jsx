@@ -4,6 +4,8 @@ import Layout from "./components/Layout.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import SoilRecommendation from "./components/SoilRecommendation.jsx";
 import IrrigationForecast from "./components/IrrigationForecast.jsx";
+import GovernmentSchemes from "./components/GovtSchemes"; // adjust path if needed
+
 
 function App() {
   return (
@@ -15,6 +17,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/soil" element={<SoilRecommendation />} />
             <Route path="/irrigation-forecast" element={<IrrigationForecast />} />
+            <Route path="/govt-schemes" element={<GovernmentSchemes />} />
           </Route>
         </Routes>
       </Router>

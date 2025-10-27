@@ -1,12 +1,13 @@
-// src/pages/GovtSchemes.jsx - UPDATED WITH WORKING LINKS ONLY
-import React from "react";
+// src/pages/GovtSchemes.jsx - FULLY TRANSLATABLE WITH DYNAMIC UPDATES
+import React, { useEffect, useState } from "react";
 import TranslatedText from "../components/TranslatedText";
+import { useLanguage } from "../context/LanguageContext";
 
-const schemes = [
+const schemesData = [
   {
     name: "Pradhan Mantri Krishi Sinchayee Yojana (PMKSY)",
     description:
-      "Focuses on enhancing irrigation coverage and improving water-use efficiency through 'Per Drop More Crop' initiatives. Provides subsidies for drip irrigation and sprinkler systems.",
+      "Focuses on enhancing irrigation coverage and improving water-use efficiency through Per Drop More Crop initiatives. Provides subsidies for drip irrigation and sprinkler systems.",
     link: "https://pmksy.gov.in/",
   },
   {
@@ -18,7 +19,7 @@ const schemes = [
   {
     name: "PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)",
     description:
-      "Direct income support of ₹6000 per year to eligible farmer families in three equal installments. Helps small and marginal farmers with cultivation and related expenses.",
+      "Direct income support of Rs 6000 per year to eligible farmer families in three equal installments. Helps small and marginal farmers with cultivation and related expenses.",
     link: "https://pmkisan.gov.in/",
   },
   {
@@ -54,14 +55,55 @@ const schemes = [
 ];
 
 const SchemeCard = ({ scheme }) => {
+  const { currentLanguage, preTranslateContent } = useLanguage();
+  const [translatedScheme, setTranslatedScheme] = useState(scheme);
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  useEffect(() => {
+    const translateScheme = async () => {
+      if (currentLanguage === 'en') {
+        setTranslatedScheme(scheme);
+        return;
+      }
+
+      setIsTranslating(true);
+      try {
+        const translated = await preTranslateContent({
+          name: scheme.name,
+          description: scheme.description,
+        });
+        setTranslatedScheme({
+          ...scheme,
+          name: translated.name || scheme.name,
+          description: translated.description || scheme.description,
+        });
+      } catch (error) {
+        console.error('Translation error:', error);
+        setTranslatedScheme(scheme);
+      } finally {
+        setIsTranslating(false);
+      }
+    };
+
+    translateScheme();
+  }, [currentLanguage, scheme, preTranslateContent]);
+
   return (
     <div className="bg-[#0E1421] text-white rounded-2xl p-6 shadow-lg hover:shadow-2xl hover:shadow-[#742BEC]/20 transition-all flex flex-col justify-between min-h-[280px] border border-gray-800 hover:border-[#742BEC]/50">
       <div>
         <h3 className="text-xl font-bold mb-3 text-[#742BEC]">
-          <TranslatedText>{scheme.name}</TranslatedText>
+          {isTranslating ? (
+            <span className="opacity-50">{scheme.name}</span>
+          ) : (
+            translatedScheme.name
+          )}
         </h3>
         <p className="text-gray-300 mb-4 text-sm leading-relaxed">
-          <TranslatedText>{scheme.description}</TranslatedText>
+          {isTranslating ? (
+            <span className="opacity-50">{scheme.description}</span>
+          ) : (
+            translatedScheme.description
+          )}
         </p>
       </div>
       <a
@@ -77,6 +119,8 @@ const SchemeCard = ({ scheme }) => {
 };
 
 const GovernmentSchemes = () => {
+  const { currentLanguage } = useLanguage();
+
   return (
     <div className="min-h-screen bg-[#060C1A] text-white flex flex-col items-center py-10 px-4 sm:px-6">
       {/* Page Header */}
@@ -94,8 +138,8 @@ const GovernmentSchemes = () => {
 
       {/* Schemes Grid */}
       <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 w-full max-w-7xl">
-        {schemes.map((scheme, index) => (
-          <SchemeCard key={index} scheme={scheme} />
+        {schemesData.map((scheme, index) => (
+          <SchemeCard key={`${index}-${currentLanguage}`} scheme={scheme} />
         ))}
       </div>
 

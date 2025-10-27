@@ -1,7 +1,7 @@
-// src/pages/SoilRecommendation.jsx - FULLY DEBUGGED VERSION
+// src/pages/SoilRecommendation.jsx - GEMINI RETURNS TRANSLATED RESULTS DIRECTLY
 import { useState, useEffect } from "react";
 import { GoogleGenAI, createUserContent } from "@google/genai";
-import TranslatedText, { useTranslateObject } from "../components/TranslatedText";
+import TranslatedText, { useTranslate } from "../components/TranslatedText";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function SoilRecommendation() {
@@ -9,16 +9,20 @@ export default function SoilRecommendation() {
   const [place, setPlace] = useState("");
   const [soilData, setSoilData] = useState({ N: "", P: "", K: "", pH: "" });
   const [loading, setLoading] = useState(false);
-  const [generalRecommendationsEN, setGeneralRecommendationsEN] = useState([]);
-  const [specializedRecommendationsEN, setSpecializedRecommendationsEN] = useState([]);
+  const [generalRecommendations, setGeneralRecommendations] = useState([]);
+  const [specializedRecommendations, setSpecializedRecommendations] = useState([]);
   const [error, setError] = useState("");
 
-  const { currentLanguage, preTranslateContent } = useLanguage();
+  const { currentLanguage, languages } = useLanguage();
   const genAI = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
-  // Real-time translation of stored English data
-  const generalRecommendations = useTranslateObject(generalRecommendationsEN);
-  const specializedRecommendations = useTranslateObject(specializedRecommendationsEN);
+  // Get language name for Gemini prompt
+  const getLanguageName = () => {
+    const lang = languages.find(l => l.code === currentLanguage);
+    return lang ? lang.name : 'English';
+  };
+
+  const WEATHER_API_KEY = "ddce2934c4f79c76915207c99d113f30";
 
   // Fetch crops by place
   const fetchCropsByPlace = async () => {
@@ -31,27 +35,32 @@ export default function SoilRecommendation() {
     setError("");
 
     try {
+      const targetLanguage = getLanguageName();
+      
       const prompt = `You are an expert agronomist. Recommend 6 suitable crops for the location "${place.trim()}" in India.
 
-Return ONLY a valid JSON array in ENGLISH with this exact structure:
+IMPORTANT: Return the response in ${targetLanguage} language. ALL text including crop names, soil types, climate descriptions, and recommendations MUST be in ${targetLanguage}.
+
+Return ONLY a valid JSON array with this exact structure:
 [
   {
-    "name": "Rice",
-    "soilType": "Clay loam",
-    "climate": "Warm and humid",
-    "waterRequirement": "High",
+    "name": "Rice (in ${targetLanguage})",
+    "soilType": "Clay loam (in ${targetLanguage})",
+    "climate": "Warm and humid (in ${targetLanguage})",
+    "waterRequirement": "High (in ${targetLanguage})",
     "idealPH": [5.5, 6.5],
-    "bestSeason": "Kharif",
-    "reasonForRecommendation": "Well-suited for monsoon regions"
+    "bestSeason": "Kharif (in ${targetLanguage})",
+    "reasonForRecommendation": "Well-suited for monsoon regions (in ${targetLanguage})"
   }
 ]
 
-IMPORTANT:
+CRITICAL RULES:
 - Return ONLY the JSON array
-- No markdown formatting
-- No explanatory text
-- All values in English
-- Use double quotes for all strings`;
+- No markdown formatting, no code blocks
+- No explanatory text before or after
+- ALL string values MUST be in ${targetLanguage} language
+- Keep idealPH as number array
+- Translate crop names to ${targetLanguage} if possible`;
 
       const response = await genAI.models.generateContent({
         model: "gemini-2.0-flash-exp",
@@ -108,21 +117,13 @@ IMPORTANT:
         crops.push({ ...crops[0], name: `${crops[0].name} (Alt)` });
       }
 
-      // Store English version
-      setGeneralRecommendationsEN(crops);
-      localStorage.setItem("generalRecs_en", JSON.stringify(crops));
-
-      // Pre-translate for current language in background
-      if (currentLanguage !== 'en') {
-        preTranslateContent(crops, currentLanguage).then(translated => {
-          localStorage.setItem(`generalRecs_${currentLanguage}`, JSON.stringify(translated));
-        }).catch(err => console.error("Pre-translation failed:", err));
-      }
+      setGeneralRecommendations(crops);
+      localStorage.setItem(`generalRecs_${currentLanguage}`, JSON.stringify(crops));
 
     } catch (err) {
       console.error("Gemini AI Error:", err);
       setError(`Failed to fetch recommendations: ${err.message}`);
-      setGeneralRecommendationsEN([]);
+      setGeneralRecommendations([]);
     } finally {
       setLoading(false);
     }
@@ -148,6 +149,8 @@ IMPORTANT:
     setError("");
 
     try {
+      const targetLanguage = getLanguageName();
+      
       const prompt = `You are an expert agronomist. Analyze this soil data and recommend 6 suitable crops:
 
 Soil Data:
@@ -156,27 +159,31 @@ Soil Data:
 - Potassium (K): ${K}
 - pH: ${pH}
 
-Return ONLY a valid JSON array in ENGLISH with this structure:
+IMPORTANT: Return the response in ${targetLanguage} language. ALL text including crop names, soil types, climate descriptions, water requirements, seasons, and recommendations MUST be in ${targetLanguage}.
+
+Return ONLY a valid JSON array with this structure:
 [
   {
-    "name": "Rice",
-    "soilType": "Clay loam",
-    "climate": "Warm humid",
-    "waterRequirement": "High",
+    "name": "Rice (in ${targetLanguage})",
+    "soilType": "Clay loam (in ${targetLanguage})",
+    "climate": "Warm humid (in ${targetLanguage})",
+    "waterRequirement": "High (in ${targetLanguage})",
     "idealPH": [5.5, 6.5],
     "idealN": 50,
     "idealP": 30,
     "idealK": 40,
-    "bestSeason": "Kharif",
-    "reasonForRecommendation": "Matches the high nitrogen and pH range"
+    "bestSeason": "Kharif (in ${targetLanguage})",
+    "reasonForRecommendation": "Matches the high nitrogen and pH range (in ${targetLanguage})"
   }
 ]
 
-IMPORTANT:
+CRITICAL RULES:
 - Return ONLY the JSON array
 - No markdown, no explanatory text
-- All values in English
-- Include idealN, idealP, idealK values`;
+- ALL string values MUST be in ${targetLanguage} language
+- Include idealN, idealP, idealK as numbers
+- Keep idealPH as number array [min, max]
+- Translate everything including crop names`;
 
       const response = await genAI.models.generateContent({
         model: "gemini-2.0-flash-exp",
@@ -229,41 +236,35 @@ IMPORTANT:
         crops.push({ ...crops[0], name: `${crops[0].name} (Alt)` });
       }
 
-      setSpecializedRecommendationsEN(crops);
-      localStorage.setItem("specialRecs_en", JSON.stringify(crops));
-
-      if (currentLanguage !== 'en') {
-        preTranslateContent(crops, currentLanguage).then(translated => {
-          localStorage.setItem(`specialRecs_${currentLanguage}`, JSON.stringify(translated));
-        }).catch(err => console.error("Pre-translation failed:", err));
-      }
+      setSpecializedRecommendations(crops);
+      localStorage.setItem(`specialRecs_${currentLanguage}`, JSON.stringify(crops));
 
     } catch (err) {
       console.error("Gemini AI Error:", err);
       setError(`Failed to fetch recommendations: ${err.message}`);
-      setSpecializedRecommendationsEN([]);
+      setSpecializedRecommendations([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Load cached data on mount
+  // Load cached data on mount and language change
   useEffect(() => {
     const loadCachedData = () => {
       try {
-        const genCache = localStorage.getItem("generalRecs_en");
+        const genCache = localStorage.getItem(`generalRecs_${currentLanguage}`);
         if (genCache) {
           const parsed = JSON.parse(genCache);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setGeneralRecommendationsEN(parsed);
+            setGeneralRecommendations(parsed);
           }
         }
 
-        const specCache = localStorage.getItem("specialRecs_en");
+        const specCache = localStorage.getItem(`specialRecs_${currentLanguage}`);
         if (specCache) {
           const parsed = JSON.parse(specCache);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setSpecializedRecommendationsEN(parsed);
+            setSpecializedRecommendations(parsed);
           }
         }
       } catch (err) {
@@ -272,12 +273,26 @@ IMPORTANT:
     };
 
     loadCachedData();
-  }, []);
+  }, [currentLanguage]);
 
   // Clear error when switching modes
   useEffect(() => {
     setError("");
   }, [mode]);
+
+  // Clear recommendations when language changes
+  useEffect(() => {
+    // Don't clear if we have cached data for this language
+    const genCache = localStorage.getItem(`generalRecs_${currentLanguage}`);
+    const specCache = localStorage.getItem(`specialRecs_${currentLanguage}`);
+    
+    if (!genCache) {
+      setGeneralRecommendations([]);
+    }
+    if (!specCache) {
+      setSpecializedRecommendations([]);
+    }
+  }, [currentLanguage]);
 
   return (
     <div className="flex flex-col gap-7 p-4 sm:p-6 bg-[#060C1A] text-white w-full min-h-screen">

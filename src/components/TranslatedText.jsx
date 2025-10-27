@@ -1,15 +1,27 @@
-// src/components/TranslatedText.jsx - KEEP THIS AS IS
-import { useMemo } from 'react';
+// src/components/TranslatedText.jsx - FIXED ASYNC VERSION
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function TranslatedText({ children, className = '' }) {
   const { currentLanguage, getTranslation, translationVersion } = useLanguage();
+  const [translatedText, setTranslatedText] = useState(children);
 
-  const translatedText = useMemo(() => {
-    if (!children) return '';
+  useEffect(() => {
+    if (!children) {
+      setTranslatedText('');
+      return;
+    }
+
     const text = typeof children === 'string' ? children : String(children);
-    if (currentLanguage === 'en') return text;
-    return getTranslation(text);
+    
+    if (currentLanguage === 'en') {
+      setTranslatedText(text);
+      return;
+    }
+
+    const translated = getTranslation(text);
+    setTranslatedText(translated);
+
   }, [children, currentLanguage, getTranslation, translationVersion]);
 
   return <span className={className}>{translatedText}</span>;
@@ -17,18 +29,36 @@ export default function TranslatedText({ children, className = '' }) {
 
 export function useTranslate(text) {
   const { currentLanguage, getTranslation, translationVersion } = useLanguage();
+  const [translatedText, setTranslatedText] = useState(text);
 
-  return useMemo(() => {
-    if (!text || currentLanguage === 'en') return text;
-    return getTranslation(text);
+  useEffect(() => {
+    if (!text) {
+      setTranslatedText('');
+      return;
+    }
+
+    if (currentLanguage === 'en') {
+      setTranslatedText(text);
+      return;
+    }
+
+    const translated = getTranslation(text);
+    setTranslatedText(translated);
+
   }, [text, currentLanguage, getTranslation, translationVersion]);
+
+  return translatedText || text;
 }
 
 export function useTranslateObject(obj) {
   const { currentLanguage, getTranslation, translationVersion } = useLanguage();
+  const [translatedObj, setTranslatedObj] = useState(obj);
 
-  return useMemo(() => {
-    if (!obj || currentLanguage === 'en') return obj;
+  useEffect(() => {
+    if (!obj || currentLanguage === 'en') {
+      setTranslatedObj(obj);
+      return;
+    }
 
     const translateRecursive = (item) => {
       if (typeof item === 'string') {
@@ -47,6 +77,8 @@ export function useTranslateObject(obj) {
       return item;
     };
 
-    return translateRecursive(obj);
+    setTranslatedObj(translateRecursive(obj));
   }, [obj, currentLanguage, getTranslation, translationVersion]);
+
+  return translatedObj;
 }

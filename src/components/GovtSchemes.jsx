@@ -1,8 +1,9 @@
-// src/components/GovtSchemes.jsx - TRANSLATION FIX
+// src/components/GovtSchemes.jsx - FIXED WITH ASYNC TRANSLATION
 import React, { useEffect, useState } from "react";
 import TranslatedText from "./TranslatedText";
 import { useLanguage } from "../context/LanguageContext";
 
+// SVG Icons
 const Volume2Icon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
@@ -19,6 +20,7 @@ const VolumeXIcon = () => (
   </svg>
 );
 
+// Government Schemes Data
 const schemesData = [
   {
     name: "Pradhan Mantri Krishi Sinchayee Yojana (PMKSY)",
@@ -60,15 +62,86 @@ const schemesData = [
     description: "State-level initiatives for strengthening agricultural infrastructure including irrigation facilities, warehousing, cold storage, and market linkages in rural areas.",
     link: "https://rkvy.nic.in/",
   },
+  {
+    name: "Micro Irrigation Fund (MIF)",
+    description: "Provides financial assistance to states for expanding micro-irrigation coverage. Supports drip and sprinkler irrigation systems to save water and increase productivity in rural farming.",
+    link: "https://www.nabard.org/",
+  },
+  {
+    name: "Rainfed Area Development Programme (RADP)",
+    description: "Focuses on integrated farming systems in rainfed areas. Promotes water harvesting, soil conservation, and efficient use of rainfall for agriculture in rural regions.",
+    link: "https://agricoop.nic.in/",
+  },
+  {
+    name: "Accelerated Irrigation Benefit Programme (AIBP)",
+    description: "Provides financial assistance for completion of ongoing irrigation projects. Aims to create additional irrigation potential and benefit rural farming communities across India.",
+    link: "https://jalshakti-dowr.gov.in/",
+  },
+  {
+    name: "Per Drop More Crop (PDMC) Component",
+    description: "Focuses on increasing water use efficiency at farm level through precision irrigation. Provides subsidy for drip and sprinkler irrigation systems for water conservation.",
+    link: "https://pmksy.gov.in/microirrigation/",
+  },
+  {
+    name: "National Mission for Sustainable Agriculture (NMSA)",
+    description: "Promotes sustainable farming practices including water conservation, soil health management, and climate-resilient agriculture for smallholder farmers in rural India.",
+    link: "https://agricoop.nic.in/",
+  },
+  {
+    name: "Farm Pond Scheme",
+    description: "Provides financial assistance for construction of farm ponds for water harvesting and storage. Helps rural farmers store rainwater for irrigation during dry seasons.",
+    link: "https://pmksy.gov.in/",
+  },
+  {
+    name: "Pradhan Mantri Krishi Sinchai Yojana - Watershed Development",
+    description: "Focuses on watershed management and water conservation in rainfed areas. Includes construction of check dams, percolation tanks, and field bunding for sustainable irrigation.",
+    link: "https://pmksy.gov.in/",
+  },
 ];
 
-const SchemeCard = ({ scheme, index }) => {
-  const { currentLanguage, getTranslation } = useLanguage();
+// Individual Scheme Card Component with PROPER ASYNC TRANSLATION
+const SchemeCard = ({ scheme }) => {
+  const { currentLanguage, preTranslateContent } = useLanguage();
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translatedScheme, setTranslatedScheme] = useState({
+    name: scheme.name,
+    description: scheme.description
+  });
 
-  // Force re-render when language changes
-  const translatedName = getTranslation(scheme.name);
-  const translatedDescription = getTranslation(scheme.description);
+  // Translate scheme content when language changes
+  useEffect(() => {
+    const translateScheme = async () => {
+      if (currentLanguage === 'en') {
+        setTranslatedScheme({
+          name: scheme.name,
+          description: scheme.description
+        });
+        return;
+      }
+
+      setIsTranslating(true);
+      try {
+        // Use preTranslateContent for better translation
+        const translated = await preTranslateContent({
+          name: scheme.name,
+          description: scheme.description
+        });
+        
+        setTranslatedScheme(translated);
+      } catch (error) {
+        console.error('Translation error:', error);
+        setTranslatedScheme({
+          name: scheme.name,
+          description: scheme.description
+        });
+      } finally {
+        setIsTranslating(false);
+      }
+    };
+
+    translateScheme();
+  }, [currentLanguage, scheme.name, scheme.description, preTranslateContent]);
 
   const handleSpeak = () => {
     if (isSpeaking) {
@@ -77,66 +150,69 @@ const SchemeCard = ({ scheme, index }) => {
       return;
     }
 
-    // Use Google Translate TTS as fallback for better Indian language support
     const langMap = {
-      'hi': 'hi',
-      'bn': 'bn',
-      'te': 'te',
-      'ta': 'ta',
-      'mr': 'mr',
-      'gu': 'gu',
-      'kn': 'kn',
-      'ml': 'ml',
-      'pa': 'pa',
-      'ur': 'ur',
-      'ne': 'ne',
-      'es': 'es',
-      'fr': 'fr',
-      'ar': 'ar',
-      'en': 'en'
+      'hi': 'hi-IN',
+      'bn': 'bn-IN',
+      'te': 'te-IN',
+      'ta': 'ta-IN',
+      'mr': 'mr-IN',
+      'gu': 'gu-IN',
+      'kn': 'kn-IN',
+      'ml': 'ml-IN',
+      'pa': 'pa-IN',
+      'ur': 'ur-PK',
+      'ne': 'ne-NP',
+      'es': 'es-ES',
+      'fr': 'fr-FR',
+      'ar': 'ar-SA',
+      'en': 'en-US'
     };
 
-    const textToSpeak = `${translatedName}. ${translatedDescription}`;
-    const lang = langMap[currentLanguage] || 'en';
+    // Use TRANSLATED text for TTS
+    const textToSpeak = `${translatedScheme.name}. ${translatedScheme.description}`;
+    const lang = langMap[currentLanguage] || 'en-US';
     
-    // Use Google Translate TTS API (free, better quality for Indian languages)
-    const audio = new Audio(
-      `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${lang}&q=${encodeURIComponent(textToSpeak)}`
-    );
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.lang = lang;
+    utterance.rate = 0.85;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
     
-    audio.onplay = () => setIsSpeaking(true);
-    audio.onended = () => setIsSpeaking(false);
-    audio.onerror = () => {
-      // Fallback to browser TTS if Google TTS fails
-      console.log("Falling back to browser TTS");
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.lang = `${lang}-IN`;
-      utterance.rate = 0.85;
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = (error) => {
+      console.error('TTS error:', error);
+      setIsSpeaking(false);
     };
     
-    audio.play();
+    window.speechSynthesis.speak(utterance);
   };
 
   return (
     <div className="bg-[#0E1421] text-white rounded-2xl p-6 shadow-lg hover:shadow-2xl hover:shadow-[#742BEC]/20 transition-all flex flex-col justify-between min-h-[280px] border border-gray-800 hover:border-[#742BEC]/50 relative">
+      {/* Speaking Indicator */}
       {isSpeaking && (
         <div className="absolute top-4 right-4">
           <div className="w-3 h-3 bg-[#742BEC] rounded-full animate-pulse"></div>
         </div>
       )}
 
+      {/* Translating Indicator */}
+      {isTranslating && (
+        <div className="absolute top-4 left-4">
+          <div className="w-3 h-3 bg-blue-500 rounded-full animate-spin"></div>
+        </div>
+      )}
+
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
           <h3 className="text-xl font-bold text-[#742BEC] flex-1">
-            {translatedName}
+            {translatedScheme.name}
           </h3>
           <button
             onClick={handleSpeak}
-            className="p-2 rounded-lg bg-[#742BEC]/10 hover:bg-[#742BEC]/20 transition-colors flex-shrink-0"
+            disabled={isTranslating}
+            className="p-2 rounded-lg bg-[#742BEC]/10 hover:bg-[#742BEC]/20 transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label={isSpeaking ? "Stop reading" : "Read aloud"}
             title={isSpeaking ? "Stop reading" : "Read aloud"}
           >
@@ -144,21 +220,23 @@ const SchemeCard = ({ scheme, index }) => {
           </button>
         </div>
         <p className="text-gray-300 mb-4 text-sm leading-relaxed">
-          {translatedDescription}
+          {translatedScheme.description}
         </p>
       </div>
+      
       <a
         href={scheme.link}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-auto bg-gradient-to-r from-[#742BEC] to-[#5a22b5] hover:from-[#5a22b5] hover:to-[#742BEC] text-white text-sm font-medium px-5 py-2.5 rounded-lg text-center transition-all shadow-lg shadow-[#742BEC]/30 hover:shadow-[#742BEC]/50"
+        className="mt-auto bg-gradient-to-r from-[#742BEC] to-[#5a22b5] hover:from-[#5a22b5] hover:to-[#742BEC] text-white text-sm font-medium px-5 py-2.5 rounded-lg text-center transition-all shadow-lg shadow-[#742BEC]/30 hover:shadow-[#742BEC]/50 block"
       >
-        <TranslatedText>Learn More</TranslatedText> →
+        <TranslatedText>Learn More</TranslatedText> &rarr;
       </a>
     </div>
   );
 };
 
+// Main Government Schemes Component
 const GovernmentSchemes = () => {
   const { currentLanguage } = useLanguage();
   const [isSpeakingAll, setIsSpeakingAll] = useState(false);
@@ -171,27 +249,30 @@ const GovernmentSchemes = () => {
     }
 
     const langMap = {
-      'hi': 'hi', 'bn': 'bn', 'te': 'te', 'ta': 'ta', 'mr': 'mr',
-      'gu': 'gu', 'kn': 'kn', 'ml': 'ml', 'pa': 'pa', 'ur': 'ur',
-      'ne': 'ne', 'es': 'es', 'fr': 'fr', 'ar': 'ar', 'en': 'en'
+      'hi': 'hi-IN', 'bn': 'bn-IN', 'te': 'te-IN', 'ta': 'ta-IN', 'mr': 'mr-IN',
+      'gu': 'gu-IN', 'kn': 'kn-IN', 'ml': 'ml-IN', 'pa': 'pa-IN', 'ur': 'ur-PK',
+      'ne': 'ne-NP', 'es': 'es-ES', 'fr': 'fr-FR', 'ar': 'ar-SA', 'en': 'en-US'
     };
 
     const headerText = "Government Schemes for Farmers. Explore major government initiatives focused on irrigation, water conservation, crop insurance, and financial support for farmers across India.";
-    const lang = langMap[currentLanguage] || 'en';
+    const lang = langMap[currentLanguage] || 'en-US';
     
-    const audio = new Audio(
-      `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${lang}&q=${encodeURIComponent(headerText)}`
-    );
+    const utterance = new SpeechSynthesisUtterance(headerText);
+    utterance.lang = lang;
+    utterance.rate = 0.85;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
     
-    audio.onplay = () => setIsSpeakingAll(true);
-    audio.onended = () => setIsSpeakingAll(false);
-    audio.onerror = () => setIsSpeakingAll(false);
+    utterance.onstart = () => setIsSpeakingAll(true);
+    utterance.onend = () => setIsSpeakingAll(false);
+    utterance.onerror = () => setIsSpeakingAll(false);
     
-    audio.play();
+    window.speechSynthesis.speak(utterance);
   };
 
   return (
     <div className="min-h-screen bg-[#060C1A] text-white flex flex-col items-center py-10 px-4 sm:px-6">
+      {/* Header Section */}
       <div className="text-center mb-12 max-w-4xl">
         <div className="flex items-center justify-center gap-4 mb-4">
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#742BEC] to-[#9d5ef0] bg-clip-text text-transparent">
@@ -214,12 +295,22 @@ const GovernmentSchemes = () => {
         </p>
       </div>
 
+      {/* Loading indicator when switching languages */}
+      {currentLanguage !== 'en' && (
+        <div className="mb-4 text-sm text-gray-400 flex items-center gap-2">
+          <div className="w-4 h-4 border-2 border-[#742BEC] border-t-transparent rounded-full animate-spin"></div>
+          <span>Translating schemes to {currentLanguage.toUpperCase()}...</span>
+        </div>
+      )}
+
+      {/* Schemes Grid */}
       <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 w-full max-w-7xl">
         {schemesData.map((scheme, index) => (
-          <SchemeCard key={`${index}-${currentLanguage}`} scheme={scheme} index={index} />
+          <SchemeCard key={index} scheme={scheme} />
         ))}
       </div>
 
+      {/* Footer Information */}
       <div className="mt-16 text-center max-w-3xl">
         <div className="bg-[#0E1421] border border-gray-800 rounded-xl p-6 mb-6">
           <h3 className="text-lg font-semibold mb-3 text-[#742BEC]">

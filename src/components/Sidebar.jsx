@@ -1,10 +1,11 @@
-// src/components/Sidebar.jsx - UPDATED VERSION
+// src/components/Sidebar.jsx - WITH TTS SUPPORT
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase.js";
 import LanguageSwitcher from "./LanguageSwitcher";
 import TranslatedText from "./TranslatedText";
+import TTSButton from "./TTSButton"; // ADD THIS IMPORT
 
 function Sidebar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -31,38 +32,47 @@ function Sidebar() {
         <nav className="flex flex-col space-y-4">
           <Link
             to="/dashboard"
-            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 w-full"
+            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 w-full group"
           >
             <img src="assets/dashboard.png" alt="Dashboard" className="w-6 h-6 max-w-full" />
-            <TranslatedText>Dashboard</TranslatedText>
+            <span className="flex-1"><TranslatedText>Dashboard</TranslatedText></span>
+            <TTSButton text="Dashboard" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity" />
           </Link>
+          
           <Link
             to="/soil"
-            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 w-full"
+            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 w-full group"
           >
             <img src="assets/Soy Bean.png" alt="AI Crop Recommendation" className="w-6 h-6 max-w-full" />
-            <TranslatedText>AI Crop Recommendation</TranslatedText>
+            <span className="flex-1"><TranslatedText>AI Crop Recommendation</TranslatedText></span>
+            <TTSButton text="AI Crop Recommendation" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity" />
           </Link>
+          
           <Link
             to="/irrigation-forecast"
-            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10"
+            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 group"
           >
             <img src="assets/Soy Bean.png" alt="AI Irrigation Forecast" className="w-6 h-6 max-w-full" />
-            <TranslatedText>AI Irrigation Forecast</TranslatedText>
+            <span className="flex-1"><TranslatedText>AI Irrigation Forecast</TranslatedText></span>
+            <TTSButton text="AI Irrigation Forecast" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity" />
           </Link>
+          
           <Link
             to="/govt-schemes"
-            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 w-full"
+            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 w-full group"
           >
             <img src="assets/govt.png" alt="Government Schemes" className="w-6 h-6 max-w-full" />
-            <TranslatedText>Government Schemes</TranslatedText>
+            <span className="flex-1"><TranslatedText>Government Schemes</TranslatedText></span>
+            <TTSButton text="Government Schemes" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity" />
           </Link>
+          
           <button
-            className="px-4 py-2 rounded bg-[#FF6B6B] hover:bg-[#E55A5A] text-center"
+            className="px-4 py-2 rounded bg-[#FF6B6B] hover:bg-[#E55A5A] text-center flex items-center justify-center gap-2"
             onClick={() => alert("Pump Control Clicked!")}
           >
             <TranslatedText>Control Pump</TranslatedText>
           </button>
+          
           <button
             onClick={handleLogout}
             className="px-4 py-2 rounded bg-red-500 hover:bg-red-600 text-center"
@@ -106,38 +116,47 @@ function Sidebar() {
               className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10"
             >
               <img src="assets/dashboard.png" alt="Dashboard" className="w-6 h-6 max-w-full" />
-              <TranslatedText>Dashboard</TranslatedText>
+              <span className="flex-1"><TranslatedText>Dashboard</TranslatedText></span>
+              <TTSButton text="Dashboard" size="sm" />
             </Link>
+            
             <Link
               to="/soil"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10"
             >
               <img src="assets/Soy Bean.png" alt="AI Crop Recommendation" className="w-6 h-6 max-w-full" />
-              <TranslatedText>AI Crop Recommendation</TranslatedText>
+              <span className="flex-1"><TranslatedText>AI Crop Recommendation</TranslatedText></span>
+              <TTSButton text="AI Crop Recommendation" size="sm" />
             </Link>
+            
             <Link
               to="/irrigation-forecast"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10"
             >
               <img src="assets/Soy Bean.png" alt="AI Irrigation Forecast" className="w-6 h-6 max-w-full" />
-              <TranslatedText>AI Irrigation Forecast</TranslatedText>
+              <span className="flex-1"><TranslatedText>AI Irrigation Forecast</TranslatedText></span>
+              <TTSButton text="AI Irrigation Forecast" size="sm" />
             </Link>
+            
             <Link
               to="/govt-schemes"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10"
             >
               <img src="assets/govt.png" alt="Government Schemes" className="w-6 h-6 max-w-full" />
-              <TranslatedText>Government Schemes</TranslatedText>
+              <span className="flex-1"><TranslatedText>Government Schemes</TranslatedText></span>
+              <TTSButton text="Government Schemes" size="sm" />
             </Link>
+            
             <button
               className="px-4 py-2 rounded bg-[#FF6B6B] hover:bg-[#E55A5A] text-center"
               onClick={() => alert("Pump Control Clicked!")}
             >
               <TranslatedText>Control Pump</TranslatedText>
             </button>
+            
             <button
               onClick={handleLogout}
               className="px-4 py-2 rounded bg-red-500 hover:bg-red-600 text-center"

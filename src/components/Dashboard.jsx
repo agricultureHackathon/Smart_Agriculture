@@ -1,9 +1,12 @@
-// src/components/Dashboard.jsx - FIXED VERSION
+// src/components/Dashboard.jsx - WITH TTS SUPPORT
+// Key changes: Added TTSButton import and buttons throughout
+
 import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase.js";
 import TranslatedText, { useTranslate } from "./TranslatedText";
+import TTSButton from "./TTSButton"; // ADD THIS IMPORT
 
 export default function Dashboard() {
   const [sensorData, setSensorData] = useState({
@@ -19,18 +22,15 @@ export default function Dashboard() {
   const [username, setUsername] = useState("User");
   const [isLoadingUser, setIsLoadingUser] = useState(true);
 
-  // Translate dynamic content
   const translatedCondition = useTranslate(sensorData.condition);
   const translatedRecommendation = useTranslate(sensorData.recommendation);
 
   const WEATHER_API_KEY = "ddce2934c4f79c76915207c99d113f30";
-
   const navigate = useNavigate();
   
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // Get username from displayName or email
         const displayName = user.displayName || user.email?.split('@')[0] || "User";
         setUsername(displayName);
         setIsLoadingUser(false);
@@ -38,7 +38,6 @@ export default function Dashboard() {
         navigate("/");
       }
     });
-
     return () => unsubscribe();
   }, [navigate]);
 
@@ -182,23 +181,38 @@ export default function Dashboard() {
             <div className="bg-[#742BEC] w-auto h-[40px] rounded-[50px] px-[13px] py-[10px] flex flex-row gap-[5px] items-center">
               <img src="/assets/location.png" alt="" />
               <p className="w-full">{location}</p>
+              {/* ADD TTS BUTTON FOR LOCATION */}
+              <TTSButton text={`Current location ${location}`} size="sm" />
             </div>
 
             <div className="flex flex-col">
-              <h2 className="text-[40px] font-medium">
-                <TranslatedText>{day}</TranslatedText>
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-[40px] font-medium">
+                  <TranslatedText>{day}</TranslatedText>
+                </h2>
+                {/* ADD TTS BUTTON FOR DATE */}
+                <TTSButton text={`${day}. ${date}`} size="sm" />
+              </div>
               <p>
                 <TranslatedText>{date}</TranslatedText>
               </p>
             </div>
 
             <div className="flex flex-col gap-[8px]">
-              <p className="text-5xl font-bold">
-                {sensorData.temperature !== null
-                  ? `${sensorData.temperature}°C`
-                  : "--"}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-5xl font-bold">
+                  {sensorData.temperature !== null
+                    ? `${sensorData.temperature}°C`
+                    : "--"}
+                </p>
+                {/* ADD TTS BUTTON FOR WEATHER */}
+                {sensorData.temperature !== null && (
+                  <TTSButton 
+                    text={`Temperature is ${sensorData.temperature} degrees celsius. Condition: ${sensorData.condition}`} 
+                    size="sm" 
+                  />
+                )}
+              </div>
               <p className="text-lg">{translatedCondition || "Condition"}</p>
             </div>
           </div>
@@ -208,9 +222,16 @@ export default function Dashboard() {
         </div>
 
         <div className="w-full lg:w-[450px] h-auto px-[18px] py-[16px] rounded-[30px] bg-[#121B2F]">
-          <h2 className="text-[20px] mb-4">
-            <TranslatedText>Today Highlight</TranslatedText>
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-[20px]">
+              <TranslatedText>Today Highlight</TranslatedText>
+            </h2>
+            {/* ADD TTS BUTTON FOR HIGHLIGHTS */}
+            <TTSButton 
+              text={`Today's highlights. Temperature: ${sensorData.temperature || 0} degrees. Humidity: ${sensorData.humidity || 0} percent. Soil Moisture: ${sensorData.soilMoisture} percent.`}
+              size="sm"
+            />
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-[#0E1421] h-[170px] rounded-[22px] p-4 flex flex-col justify-center gap-[20px]">
               <h3 className="font-semibold">
@@ -244,9 +265,13 @@ export default function Dashboard() {
 
       {sensorData.temperature !== null && irrigationTip && (
         <div className="w-full bg-[#0E1421] mt-6 p-6 rounded-[20px] text-center">
-          <h3 className="text-lg font-semibold mb-3">
-            <TranslatedText>Irrigation Tip</TranslatedText>
-          </h3>
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <h3 className="text-lg font-semibold">
+              <TranslatedText>Irrigation Tip</TranslatedText>
+            </h3>
+            {/* ADD TTS BUTTON FOR IRRIGATION TIP */}
+            <TTSButton text={`Irrigation tip: ${irrigationTip}`} size="sm" />
+          </div>
           <p className="text-sm text-gray-300">{translatedTip}</p>
         </div>
       )}
